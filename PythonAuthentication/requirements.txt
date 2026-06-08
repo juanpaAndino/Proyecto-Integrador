@@ -1,5 +1,5 @@
 fastapi
 uvicorn
 sqlmodel
-bcrypt
+pycryptodome
 python-dotenv
