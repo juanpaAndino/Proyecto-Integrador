@@ -1,0 +1,9 @@
+/bin/
+*.exe
+*.out
+*.app
+.DS_Store
+.AppleDouble
+.LSOverride
+.env
+/vendor/

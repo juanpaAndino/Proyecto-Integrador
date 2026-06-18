@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  go-chat:
+    build:
+      context: . 
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - python-auth
+    environment:
+      - AUTH_SERVICE_URL=http://python-auth:8000 
+
+  python-auth:
+    build:
+      context: ./PythonAuthentication
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./PythonAuthentication/.env

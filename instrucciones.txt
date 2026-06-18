@@ -1,0 +1,22 @@
+2. Crea el Entorno Virtual
+Ejecuta el siguiente comando para crear una carpeta oculta llamada venv que contendrá una versión aislada de Python:
+
+Bash
+python -m venv venv
+3. Activa el Entorno Virtual
+Al estar en Windows, el comando para encender este entorno es:
+
+Bash
+.\venv\Scripts\activate
+(Sabrás que funcionó porque en tu terminal aparecerá la palabra (venv) al inicio de la línea).
+
+4. Instala las dependencias
+Con el entorno activado, dile a Python que lea tu archivo y descargue FastAPI, SQLModel, bcrypt y uvicorn:
+
+Bash
+pip install -r requirements.txt
+5. Levanta el servidor de FastAPI
+Ejecuta el servidor utilizando Uvicorn. El parámetro --reload es clave, ya que reiniciará el servidor automáticamente cada vez que guardes un cambio en tu código:
+
+Bash
+uvicorn main:app --reload

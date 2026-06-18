@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ChatStream Seguro</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #121212; color: #00ffcc; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { background-color: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #00ffcc; width: 350px; text-align: center; }
+        input { width: 90%; padding: 10px; margin: 10px 0; background-color: #333; color: white; border: 1px solid #00ffcc; border-radius: 4px;}
+        button { padding: 10px 20px; background-color: #00ffcc; color: black; border: none; font-weight: bold; cursor: pointer; width: 100%; border-radius: 4px; margin-top: 10px;}
+        button:hover { background-color: #00ccaa; }
+        #chat-section { display: none; width: 400px; }
+        #chatbox { height: 300px; overflow-y: scroll; border: 1px solid #00ffcc; padding: 10px; text-align: left; background-color: #2d2d2d; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+   <div id="login-section" class="container">
+        <h2>Ingresar al Sistema</h2>
+        <input type="text" id="username" placeholder="Nombre de usuario">
+        <input type="password" id="password" placeholder="Contraseña">
+        
+        <button onclick="login()">Iniciar Sesión</button>
+        <button onclick="registrar()" style="background-color: #333; color: #00ffcc; margin-top: 10px;">Registrar Nuevo Usuario</button>
+        
+        <p id="error-msg" style="color: red; display: none;"></p>
+    </div>
+
+    <div id="chat-section" class="container">
+        <h2 id="welcome-msg">Sala de Chat</h2>
+        <div id="chatbox"></div>
+        <input type="text" id="mensaje" placeholder="Escribe tu mensaje..." autocomplete="off">
+        <button onclick="enviar()">Enviar</button>
+    </div>
+
+    <script>
+        let socket;
+
+        async function login() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const errorMsg = document.getElementById("error-msg");
+
+            if (!user || !pass) {
+                errorMsg.innerText = "Por favor, ingresa tus datos.";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:8080/api/v1/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    iniciarChat(data.username);
+                } else {
+                    const text = await response.text();
+                    try {
+                        const data = JSON.parse(text);
+                        errorMsg.innerText = data.detail || "Credenciales incorrectas";
+                    } catch(e) {
+                        errorMsg.innerText = "Credenciales incorrectas";
+                    }
+                    errorMsg.style.display = "block";
+                }
+            } catch (err) {
+                errorMsg.innerText = "Error Crítico: No se pudo conectar a Go. ¿Está Docker encendido?";
+                errorMsg.style.display = "block";
+            }
+        }
+
+        function iniciarChat(username) {
+            document.getElementById("login-section").style.display = "none";
+            document.getElementById("chat-section").style.display = "block";
+            document.getElementById("welcome-msg").innerText = "Conectado como: " + username;
+
+            // Se envía directamente el username que espera el archivo client.go actualizado
+            socket = new WebSocket("ws://localhost:8080/ws?username=" + username);
+            const chatbox = document.getElementById("chatbox");
+
+            socket.onopen = function(event) {
+                chatbox.innerHTML += "<div style='color: lime;'>[Sistema] Conexión al chat exitosa. ¡El túnel está abierto!</div>";
+            };
+
+            socket.onmessage = function(event) {
+                chatbox.innerHTML += "<div>" + event.data + "</div>";
+                chatbox.scrollTop = chatbox.scrollHeight; 
+            };
+
+            socket.onclose = function(event) {
+                chatbox.innerHTML += "<div style='color: red;'>[Sistema] Error: Go rechazó la conexión de WebSocket.</div>";
+            };
+        }
+
+        function enviar() {
+            const input = document.getElementById("mensaje");
+            if (input.value && socket) {
+                socket.send(input.value);
+                input.value = "";
+            }
+        }
+
+        document.getElementById("mensaje").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") enviar();
+        });
+
+        async function registrar() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const errorMsg = document.getElementById("error-msg");
+
+            if (!user || !pass) {
+                errorMsg.innerText = "Ingresa un usuario y contraseña válidos";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:8080/api/v1/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                if (response.ok) {
+                    alert("¡Usuario registrado exitosamente! Ahora haz clic en 'Iniciar Sesión'.");
+                    errorMsg.style.display = "none";
+                } else {
+                    const text = await response.text();
+                    try {
+                        const data = JSON.parse(text);
+                        errorMsg.innerText = data.detail || "El usuario ya existe.";
+                    } catch(e) {
+                        errorMsg.innerText = "El usuario ya existe o hubo un error.";
+                    }
+                    errorMsg.style.display = "block";
+                }
+            } catch (err) {
+                errorMsg.innerText = "Error Crítico: No se pudo conectar a Go. ¿Está Docker encendido?";
+                errorMsg.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>
