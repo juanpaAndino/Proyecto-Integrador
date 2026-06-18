@@ -18,5 +18,3 @@ Si requieres ejecutar los servicios fuera de contenedores para debugging:
      - Requiere Go 1.26+ instalado.
      - Ejecuta desde la raíz: go run ./cmd/server/main.go
 
-3. VALIDACIÓN DE RED (Etapa 3)
-- La configuración de VLANs, EtherChannel y Firewall está documentada en el archivo de Packet Tracer (.pkt).
