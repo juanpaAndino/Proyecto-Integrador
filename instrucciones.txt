@@ -20,4 +20,3 @@ Si requieres ejecutar los servicios fuera de contenedores para debugging:
 
 3. VALIDACIÓN DE RED (Etapa 3)
 - La configuración de VLANs, EtherChannel y Firewall está documentada en el archivo de Packet Tracer (.pkt).
-- Para la defensa, asegúrate de tener Wireshark capturando la interfaz del router para demostrar el tráfico de los WebSockets.
