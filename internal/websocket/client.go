@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	//"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
 )
 
@@ -52,46 +51,20 @@ func (c *Client) WritePump() {
 }
 
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	// 1. Extraer el nombre de usuario directamente de la URL
 	username := r.URL.Query().Get("username")
 	if username == "" {
-		username = "Usuario_Anonimo" // Red de seguridad por si acaso
+		username = "Usuario_Anonimo"
 	}
 
-	/* === SEGURIDAD JWT APAGADA TEMPORALMENTE PARA LA DEFENSA ===
-	tokenString := r.URL.Query().Get("token")
-	if tokenString == "" {
-	    http.Error(w, "Acceso denegado: falta token", http.StatusUnauthorized)
-	    return
-	}
-
-	// Validar el JWT
-	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-	    return []byte("SecretoSuperSeguroParaElChat"), nil // Debe coincidir con el de handlers.go
-	})
-
-	if err != nil || !token.Valid {
-	    http.Error(w, "Acceso denegado: token inválido", http.StatusUnauthorized)
-	    return
-	}
-
-	// Extraer el username del token validado
-	username = claims["username"].(string)
-	============================================================ */
-
-	// 2. Actualizar la conexión HTTP normal a una de WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	// 3. Registramos al cliente con su nombre de usuario en el Hub
 	client := &Client{Hub: hub, Conn: conn, Send: make(chan []byte, 256), Username: username}
 	client.Hub.Register <- client
 
-	// 4. Encender los procesos de lectura y escritura en paralelo (Goroutines)
 	go client.WritePump()
 	go client.ReadPump()
 }
